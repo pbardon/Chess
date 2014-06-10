@@ -6,7 +6,7 @@ class Board
   end
   
   def pieces(color)
-    @board.flatten.select { |x| x.color == color }
+    @board.flatten.select { |x| x.color == color unless x.nil? }
   end  
   
   def display_board
@@ -32,12 +32,15 @@ class Board
   
   def []=(pos_arr, piece)
     @board[pos_arr.last][pos_arr.first] = piece
-    piece.position(pos_arr)
+    piece.set_position(pos_arr)
   end
   
   def in_check?(color)
-    check_color = {:white => white_pieces}
+    k_pos = pieces(color).select {|p| p.is_a?(King)}.first.position
+    other_color = (color == :white ? :black : :white)
+    pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
   end
+  
 end
 
 class Piece
@@ -55,18 +58,22 @@ class Piece
                 
                 
 
-  def initialize(position, board, color)
+  def initialize(pos, board, color)
     @board = board
-    @x_pos = position.first
-    @y_pos = position.last
+    @x_pos = pos.first
+    @y_pos = pos.last
     @color = color
-    @board[position] = self
+    @board[pos] = self
   end
   
-  def position(position)
-    @x_pos = position.first
-    @y_pos = position.last
+  def position
+    [@x_pos, @y_pos]
   end
+  
+  def set_position(pos_arr)
+    @x_pos = pos_arr.first
+    @y_pos = pos_arr.last
+  end    
   
   def moves
   end
@@ -105,7 +112,6 @@ class SlidingPiece < Piece
   end
   
   def moves(valid_dir)
-    puts "sliding"
     moves_arr = []
     valid_dir.each do |dir|
       stop_n = 8
