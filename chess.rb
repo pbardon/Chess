@@ -1,4 +1,5 @@
 # encoding: UTF-8 
+##require 'debugger'
 
 class Board
   def initialize
@@ -32,13 +33,18 @@ class Board
   
   def []=(pos_arr, piece)
     @board[pos_arr.last][pos_arr.first] = piece
-    piece.set_position(pos_arr)
+  ##  piece.set_position(pos_arr)
   end
   
   def in_check?(color)
     k_pos = pieces(color).select {|p| p.is_a?(King)}.first.position
     other_color = (color == :white ? :black : :white)
     pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
+  end
+  
+  def move(start_pos, end_pos)
+    @board[start_pos[1]][start_pos[0]].set_position(end_pos)
+    @board[start_pos[1]][start_pos[0]] = nil
   end
   
 end
@@ -54,8 +60,6 @@ class Piece
                 [ 0, -1],
                 [ 1,  0],
                 [-1,  0]]
-                
-                
                 
 
   def initialize(pos, board, color)
@@ -73,6 +77,7 @@ class Piece
   def set_position(pos_arr)
     @x_pos = pos_arr.first
     @y_pos = pos_arr.last
+    @board[pos_arr] = self
   end    
   
   def moves
@@ -228,4 +233,11 @@ class Castle < SlidingPiece
 end
 
 
-
+if __FILE__  == $PROGRAM_NAME
+  b = Board.new
+  white_k = King.new([3,0], b, :white)
+  black_k = King.new([3,7], b, :black)
+  b.display_board
+  b.move([3,0], [4,0])
+  b.display_board
+end
