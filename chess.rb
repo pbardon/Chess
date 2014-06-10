@@ -43,21 +43,24 @@ end
 class Piece
   attr_accessor :x_pos, :y_pos, :color
   
-  CARDINALS = [   [ 0,  1],
-                  [ 0, -1],
-                  [ 1,  0],
-                  [-1,  0],
-                  [ 1,  1],
-                  [-1, -1],
-                  [ 1, -1],
-                  [-1,  1]]
-  
+  CARDINALS = [ [ 1,  1],
+                [-1, -1],
+                [ 1, -1],
+                [-1,  1],
+                [ 0,  1],
+                [ 0, -1],
+                [ 1,  0],
+                [-1,  0]]
+                
+                
+                
+
   def initialize(position, board, color)
     @board = board
     @x_pos = position.first
     @y_pos = position.last
     @color = color
-    @character = nil # fix this
+    @board[position] = self
   end
   
   def position(position)
@@ -129,7 +132,10 @@ class King < SteppingPiece
                   
   def initialize(position, board, color)
     super
-    @character = "K"
+  end
+  
+  def inspect
+    "K"
   end
   
                 
@@ -160,35 +166,30 @@ class Knight < SteppingPiece
     super
   end
   
+  def inspect
+    "N"
+  end
+  
 end
   
 class Queen < SlidingPiece
-  
-  Q_MOVES = [   [ 0,  1],
-                [ 0, -1],
-                [ 1,  0],
-                [-1,  0],
-                [ 1,  1],
-                [-1, -1],
-                [ 1, -1],
-                [-1,  1]]
   
   def initialize(position, board, color)
     super
     @character = "Q"
   end
 
-  def moves(move = Q_MOVES)
-    super
+  def moves
+    super(CARDINALS)
+  end
+  
+  def inspect
+    "Q"
   end
 end
   
 class Bishop < SlidingPiece
   
-  B_MOVES = [   [ 1,  1],
-                [-1, -1],
-                [ 1, -1],
-                [-1,  1]]
                 
   def initialize(position, board, color)
     super
@@ -196,25 +197,27 @@ class Bishop < SlidingPiece
   end
   
   def moves
-    super(B_MOVES)
+    super(CARDINALS.take(4))
+  end
+  
+  def inspect
+    "B"
   end
 end
 
 class Castle < SlidingPiece
-  
-  C_MOVES = [   [ 0,  1],
-                [ 0, -1],
-                [ 1,  0],
-                [-1,  0]]
-                
-                
+             
   def initialize(position, board, color)
     super
     @charcter = "C"
   end
   
-  def moves(move = C_MOVES)
-    super
+  def moves
+    super(CARDINALS.drop(4))
+  end
+  
+  def inspect
+    "C"
   end
 end
 
