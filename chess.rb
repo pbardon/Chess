@@ -1,5 +1,5 @@
 # encoding: UTF-8 
-##require 'debugger'
+###require 'debugger'
 
 class Board
   def initialize(board = Array.new(8) { Array.new(8) {nil}})
@@ -78,9 +78,9 @@ class Piece
   attr_accessor :x_pos, :y_pos, :color
   
   CARDINALS = [ [ 1,  1],
-                [-1, -1],
-                [ 1, -1],
                 [-1,  1],
+                [ 1, -1],
+                [-1, -1],
                 [ 0,  1],
                 [ 0, -1],
                 [ 1,  0],
@@ -174,6 +174,7 @@ class King < SteppingPiece
                   
   def initialize(position, board, color)
     super
+    @character = "K"
   end
   
   def inspect
@@ -251,7 +252,7 @@ class Castle < SlidingPiece
              
   def initialize(position, board, color)
     super
-    @charcter = "C"
+    @character = "C"
   end
   
   def moves
@@ -263,19 +264,64 @@ class Castle < SlidingPiece
   end
 end
 
+class Pawn < SteppingPiece
+  
+  def initialize(position, board, color)
+    super
+    @character = "P"
+    @first_move = true
+  end
+  
+  def moves()
+    moves_arr = []
+    if self.color == :white
+      deltas = CARDINALS.take(2)
+      moves_arr += check_for_enemies(:white, deltas)
+      moves_arr << [0, @y_pos + 2] if @first_move
+      moves_arr << [0, @y_pos + 1] 
+    else
+      deltas = CARDINALS[3..4]
+      moves_arr += check_for_enemies(:black, deltas)
+      moves_arr << [0, @y_pos - 2] if @first_move
+      moves_arr << [0, @y_pos - 1] 
+    end
+    @first_move = false
+    moves_arr
+  end
+  
+  def check_for_enemies(color, deltas)
+    o_color = (color == :white ? :black : :white)
+    moves_arr = []
+    deltas.each do |delta|
+      new_x = @x_pos + delta.first
+      new_y = @y_pos + delta.last
+      unless @board[[new_x, new_y]].nil?
+        if @board[[new_x, new_y]].color == o_color 
+          moves_arr << [new_x, new_y]
+        end
+      end
+    end
+    moves_arr
+  end
+  def inspect
+    "P"
+  end
+  
+end
+    
 
 if __FILE__  == $PROGRAM_NAME
   b = Board.new
   white_k = King.new([3,0], b, :white)
   white_b = Bishop.new([2,0], b, :white)
+  white_p = Pawn.new([0,1], b, :white)
   
   black_k = King.new([3,7], b, :black)
   black_b = Bishop.new([2,7], b, :black)
   b.display_board
   #b.move([3,0], [4,0])
   b.display_board
-  b.move([2,7], [5, 4])
-  b.move([3,0], [2,1])
+  b.move([0,1], [0,3])
   b.display_board
   p b.in_check?(:white)
 end
