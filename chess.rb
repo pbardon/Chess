@@ -1,39 +1,65 @@
 # encoding: UTF-8 
-##require 'debugger'
+require 'io/console'
+require 'debugger'
+
+
 class Game
   def initialize
     @b = Board.new
-    checkmate = false
-    until checkmate
+    @cursor_pos = [3,3]
+    @checkmate = false
+    play_game
+  end
+  
+  def input(choice)
+    case choice.to_s
+    when 'w'
+      move_cursor([0, -1])
+    when 'a'
+      move_cursor([-1, 0])
+    when 's'
+      move_cursor([0, 1])
+    when 'd'
+      move_cursor([1, 0])
+    when 'q'
+      @checkmate = true
+      return
+    when 'c'
+      @move_from = [@cursor_pos[0],@cursor_pos[1]]
+      puts @cursor_pos
+    when 'v'
+      @move_to = [@cursor_pos[0],@cursor_pos[1]]
+      @b.move(@move_from, @move_to)
+      return
+    end
+  end
+  
+  def move_cursor(rel_pos)
+    @cursor_pos[0] += rel_pos.first
+    @cursor_pos[1] += rel_pos.last
+  end
+  
+  def play_game
+    until @checkmate
       begin
-        @b.display_board
-        current_move = get_move
-        @b.move(current_move.first, current_move.last)
-        @b.display_board
-        checkmate = @b.in_checkmate?(:white) || @b.in_checkmate?(:black) 
+        system("clear")
+        @b.display_board(@cursor_pos)
+        puts "Use WASD to move and C to choose starting piece and V to place it."
+        input(STDIN.getch)
+        p @cursor_pos
+        break if @checkmate
+        system("clear")
+        @b.display_board(@cursor_pos)
+        
+        @checkmate = @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
       rescue StandardError => e
         puts e.message
         retry
       end
     end
   end
-  
-  def get_move
-    puts "Enter the x coordinate space you would like to move from:"
-    move_from_x = gets.chomp.to_i
-    puts "Enter the y coordinate space you would like to move from:"
-    move_from_y = gets.chomp.to_i
-    puts "Enter the x coordinate space you would like to move to:"
-    move_to_x = gets.chomp.to_i
-    puts "Enter the y coordinate space you would like to move to:"
-    move_to_y = gets.chomp.to_i
-    
-    move_from = [move_from_x, move_from_y]
-    move_to = [move_to_x, move_to_y]
-    
-    [move_from, move_to]
-  end
 end
+
 class Board
   def initialize(board = Array.new(8) { Array.new(8) {nil}})
     @board = board
@@ -66,18 +92,28 @@ class Board
     8.times { |i| Pawn.new([i,6], self, :black) }
   end
   
-  def display_board
+  def display_board(cursor_pos)
     checker = false
-    @board.each do |row|
+    @board.each_with_index do |row, i|
       checker = !checker
-      row.each do |space|
-        if space == nil
-          print  "▓" + " " if checker
-          print  "▢" + " " if !checker
+      row.each_with_index do |space, j|
+        if [j,i] == cursor_pos
+          if space == nil
+            print  "▓".green + " " if checker
+            print  "▢".green + " " if !checker
+          else
+            print "#{space.inspect} ".green
+          end
+          checker = !checker
         else
-          print "#{space.inspect} "
+          if space == nil
+            print  "▓" + " " if checker
+            print  "▢" + " " if !checker
+          else
+            print "#{space.inspect} "
+          end
+          checker = !checker
         end
-        checker = !checker
       end
       puts
     end
@@ -115,6 +151,8 @@ class Board
   
   def move(start_pos, end_pos)
     piece = @board[start_pos[1]][start_pos[0]]
+    puts "start pos:"
+    p start_pos
     unless piece.nil?
       moves = piece.moves
       if moves.include?(end_pos)
@@ -388,13 +426,11 @@ class Pawn < SteppingPiece
         end
       end
     end
-    p moves_arr
     moves_arr
   end
   
   def check_for_enemies(color, deltas)
     moves_arr = []
-    p deltas
     deltas.each do |delta|
       new_x = @x_pos + delta.first
       new_y = @y_pos + delta.last
@@ -413,6 +449,18 @@ class Pawn < SteppingPiece
     "♟" if @color == :white
   end
   
+end
+
+
+class String
+  # colorization
+  def colorize(color_code)
+    "\e[#{color_code}m#{self}\e[0m"
+  end
+
+  def green
+    colorize(32)
+  end
 end
     
 
