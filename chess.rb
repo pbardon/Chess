@@ -1,12 +1,21 @@
 # encoding: UTF-8 
-###require 'debugger'
+##require 'debugger'
 class Game
   def initialize
     @b = Board.new
-    ##until @b.in_checkmate?(:white) || @b.in_checkmate?(:black) 
-    move_from, move_to = get_move
-    @b.move(move_from, move_to)
-    @b.display_board
+    checkmate = false
+    until checkmate
+      begin
+        @b.display_board
+        current_move = get_move
+        @b.move(current_move.first, current_move.last)
+        @b.display_board
+        checkmate = @b.in_checkmate?(:white) || @b.in_checkmate?(:black) 
+      rescue StandardError => e
+        puts e.message
+        retry
+      end
+    end
   end
   
   def get_move
@@ -95,13 +104,13 @@ class Board
   
   def in_checkmate?(color)
     k_pos = get_king(color).position
-    valid_moves = []
-    pieces(color).each do |piece|
-      valid_moves += piece.moves.select do |move| 
+
+    pieces(color).map do |piece|
+      piece.moves.select do |move| 
         !piece.move_into_check?(move)
       end
-    end
-    valid_moves.empty?
+    end.flatten(1).empty?
+
   end
   
   def move(start_pos, end_pos)
@@ -116,7 +125,7 @@ class Board
            piece.set_position(end_pos)
         end
       else
-        raise "Can't move there."
+        raise StandardError.new "Can't move there."
       end
     else
       raise "No piece"
@@ -130,11 +139,7 @@ class Board
       if moves.include?(end_pos)
         @board[start_pos[1]][start_pos[0]] = nil
           piece.set_position(end_pos)
-      else
-        raise "Can't move there."
       end
-    else
-      raise "No piece"
     end
   end
   
@@ -351,34 +356,38 @@ class Pawn < SteppingPiece
   def initialize(position, board, color)
     super
     @character = "P"
-    @first_move = true
+    @first_pos = position
   end
   
   def moves()
     moves_arr = []
     if self.color == :white
       deltas = CARDINALS.take(2)
-      moves_arr += check_for_enemies(:white, deltas)
-      moves_arr << [0, @y_pos + 2] if @first_move
-      moves_arr << [0, @y_pos + 1] 
+      moves_arr += check_for_enemies(:black, deltas)
+      new_pos = [@x_pos, @y_pos + 1]
+      if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
+        moves_arr << [@x_pos, @y_pos + 2] if self.position == @first_pos 
+        moves_arr << [@x_pos, @y_pos + 1]
+      end
     else
       deltas = CARDINALS[3..4]
-      moves_arr += check_for_enemies(:black, deltas)
-      moves_arr << [0, @y_pos - 2] if @first_move
-      moves_arr << [0, @y_pos - 1] 
+      moves_arr += check_for_enemies(:white, deltas)
+      new_pos = [@x_pos, @y_pos - 1] 
+      if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
+        moves_arr << [@x_pos, @y_pos - 2] if self.position == @first_pos 
+        moves_arr << new_pos
+      end
     end
-    @first_move = false
     moves_arr
   end
   
   def check_for_enemies(color, deltas)
-    o_color = (color == :white ? :black : :white)
     moves_arr = []
     deltas.each do |delta|
       new_x = @x_pos + delta.first
       new_y = @y_pos + delta.last
       unless @board[[new_x, new_y]].nil?
-        if @board[[new_x, new_y]].color == o_color 
+        if @board[[new_x, new_y]].color == color 
           moves_arr << [new_x, new_y]
         end
       end
