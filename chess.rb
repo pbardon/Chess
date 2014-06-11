@@ -2,8 +2,8 @@
 ##require 'debugger'
 
 class Board
-  def initialize
-    @board = Array.new(8) { Array.new(8) {nil}}
+  def initialize(board = Array.new(8) { Array.new(8) {nil}})
+    @board = board
   end
   
   def pieces(color)
@@ -25,6 +25,7 @@ class Board
       end
       puts
     end
+    puts ""
   end
   
   def [](pos_arr)
@@ -33,18 +34,42 @@ class Board
   
   def []=(pos_arr, piece)
     @board[pos_arr.last][pos_arr.first] = piece
-  ##  piece.set_position(pos_arr)
   end
   
   def in_check?(color)
-    k_pos = pieces(color).select {|p| p.is_a?(King)}.first.position
+    k_pos = pieces(color).select {|p| p.is_a?(King)}.last.position
     other_color = (color == :white ? :black : :white)
     pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
   end
   
   def move(start_pos, end_pos)
-    @board[start_pos[1]][start_pos[0]].set_position(end_pos)
-    @board[start_pos[1]][start_pos[0]] = nil
+    piece = @board[start_pos[1]][start_pos[0]]
+    unless piece.nil?
+      moves = piece.moves
+      if moves.include?(end_pos)
+        if piece.move_into_check?(end_pos)
+          raise "This move would put you in check"
+        else
+          @board[start_pos[1]][start_pos[0]] = nil
+           piece.set_position(end_pos)
+        end
+      else
+        raise "Can't move there."
+      end
+    else
+      raise "No piece"
+    end
+  end
+  
+  def dup
+    new_board = Board.new()
+    @board.each_with_index do |row, i|
+      row.each_with_index do |piece, j|
+        next if piece.nil?
+        new_board[[j, i]] = piece.class.new(piece.position, new_board,                                                                      piece.color)
+      end
+    end
+    new_board
   end
   
 end
@@ -77,10 +102,16 @@ class Piece
   def set_position(pos_arr)
     @x_pos = pos_arr.first
     @y_pos = pos_arr.last
-    @board[pos_arr] = self
+     @board[pos_arr] = self
   end    
   
-  def moves
+  def move_into_check?(pos)
+    new_board = @board.dup
+    ##start_pos = self.position
+    
+    new_board[[self.position[1], self.position[0]]] = nil
+    piece = self.class.new(pos, new_board, self.color)
+    new_board.in_check?(@color)
   end
   
   def inspect
@@ -236,8 +267,15 @@ end
 if __FILE__  == $PROGRAM_NAME
   b = Board.new
   white_k = King.new([3,0], b, :white)
+  white_b = Bishop.new([2,0], b, :white)
+  
   black_k = King.new([3,7], b, :black)
+  black_b = Bishop.new([2,7], b, :black)
   b.display_board
-  b.move([3,0], [4,0])
+  #b.move([3,0], [4,0])
   b.display_board
+  b.move([2,7], [5, 4])
+  b.move([3,0], [2,1])
+  b.display_board
+  p b.in_check?(:white)
 end
