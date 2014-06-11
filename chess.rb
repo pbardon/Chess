@@ -367,21 +367,25 @@ class Pawn < SteppingPiece
       new_pos = [@x_pos, @y_pos + 1]
       new_pos2 = [@x_pos, @y_pos + 2]
       if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
-        moves_arr <<  new_pos
+        moves_arr <<  new_pos if @board[new_pos] == nil
       end
       if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
-        moves_arr << new_pos2 if self.position == @first_pos 
+        if self.position == @first_pos && @board[new_pos] == nil
+          moves_arr << new_pos2 
+        end
       end
     else
-      deltas = CARDINALS[3..4]
+      deltas = CARDINALS[2..3]
       moves_arr += check_for_enemies(:white, deltas)
       new_pos =  [@x_pos, @y_pos - 1]
       new_pos2 = [@x_pos, @y_pos - 2]
       if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
-        moves_arr << new_pos
+        moves_arr << new_pos if @board[new_pos] == nil
       end
       if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
-        moves_arr << new_pos2 if self.position == @first_pos 
+        if self.position == @first_pos && @board[new_pos] == nil
+          moves_arr << new_pos2
+        end
       end
     end
     p moves_arr
@@ -390,6 +394,7 @@ class Pawn < SteppingPiece
   
   def check_for_enemies(color, deltas)
     moves_arr = []
+    p deltas
     deltas.each do |delta|
       new_x = @x_pos + delta.first
       new_y = @y_pos + delta.last
