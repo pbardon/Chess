@@ -61,6 +61,21 @@ class Board
     end
   end
   
+  def move!(start_pos, end_pos)
+    piece = @board[start_pos[1]][start_pos[0]]
+    unless piece.nil?
+      moves = piece.moves
+      if moves.include?(end_pos)
+        @board[start_pos[1]][start_pos[0]] = nil
+          piece.set_position(end_pos)
+      else
+        raise "Can't move there."
+      end
+    else
+      raise "No piece"
+    end
+  end
+  
   def dup
     new_board = Board.new()
     @board.each_with_index do |row, i|
@@ -102,15 +117,12 @@ class Piece
   def set_position(pos_arr)
     @x_pos = pos_arr.first
     @y_pos = pos_arr.last
-     @board[pos_arr] = self
+    @board[pos_arr] = self
   end    
   
   def move_into_check?(pos)
     new_board = @board.dup
-    ##start_pos = self.position
-    
-    new_board[[self.position[1], self.position[0]]] = nil
-    piece = self.class.new(pos, new_board, self.color)
+    new_board.move!([@x_pos, @y_pos], pos)
     new_board.in_check?(@color)
   end
   
@@ -321,7 +333,7 @@ if __FILE__  == $PROGRAM_NAME
   b.display_board
   #b.move([3,0], [4,0])
   b.display_board
-  b.move([0,1], [0,3])
+  b.move([2,7], [5,4])
+  b.move([3,0], [2,1])
   b.display_board
-  p b.in_check?(:white)
 end
