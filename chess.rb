@@ -365,19 +365,26 @@ class Pawn < SteppingPiece
       deltas = CARDINALS.take(2)
       moves_arr += check_for_enemies(:black, deltas)
       new_pos = [@x_pos, @y_pos + 1]
+      new_pos2 = [@x_pos, @y_pos + 2]
       if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
-        moves_arr << [@x_pos, @y_pos + 2] if self.position == @first_pos 
-        moves_arr << [@x_pos, @y_pos + 1]
+        moves_arr <<  new_pos
+      end
+      if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
+        moves_arr << new_pos2 if self.position == @first_pos 
       end
     else
       deltas = CARDINALS[3..4]
       moves_arr += check_for_enemies(:white, deltas)
-      new_pos = [@x_pos, @y_pos - 1] 
+      new_pos =  [@x_pos, @y_pos - 1]
+      new_pos2 = [@x_pos, @y_pos - 2]
       if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
-        moves_arr << [@x_pos, @y_pos - 2] if self.position == @first_pos 
         moves_arr << new_pos
       end
+      if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
+        moves_arr << new_pos2 if self.position == @first_pos 
+      end
     end
+    p moves_arr
     moves_arr
   end
   
@@ -387,8 +394,10 @@ class Pawn < SteppingPiece
       new_x = @x_pos + delta.first
       new_y = @y_pos + delta.last
       unless @board[[new_x, new_y]].nil?
-        if @board[[new_x, new_y]].color == color 
-          moves_arr << [new_x, new_y]
+        if new_x.between?(0,7) && new_y.between?(0,7)
+          if @board[[new_x, new_y]].color == color
+            moves_arr << [new_x, new_y]
+          end
         end
       end
     end
