@@ -1,6 +1,30 @@
 # encoding: UTF-8 
 ###require 'debugger'
-
+class Game
+  def initialize
+    @b = Board.new
+    ##until @b.in_checkmate?(:white) || @b.in_checkmate?(:black) 
+    move_from, move_to = get_move
+    @b.move(move_from, move_to)
+    @b.display_board
+  end
+  
+  def get_move
+    puts "Enter the x coordinate space you would like to move from:"
+    move_from_x = gets.chomp.to_i
+    puts "Enter the y coordinate space you would like to move from:"
+    move_from_y = gets.chomp.to_i
+    puts "Enter the x coordinate space you would like to move to:"
+    move_to_x = gets.chomp.to_i
+    puts "Enter the y coordinate space you would like to move to:"
+    move_to_y = gets.chomp.to_i
+    
+    move_from = [move_from_x, move_from_y]
+    move_to = [move_to_x, move_to_y]
+    
+    [move_from, move_to]
+  end
+end
 class Board
   def initialize(board = Array.new(8) { Array.new(8) {nil}})
     @board = board
@@ -370,7 +394,5 @@ end
     
 
 if __FILE__  == $PROGRAM_NAME
-  b = Board.new
-  b.display_board
-  puts b.in_checkmate?(:white)
+  g = Game.new
 end
