@@ -4,11 +4,34 @@
 class Board
   def initialize(board = Array.new(8) { Array.new(8) {nil}})
     @board = board
+    setup_board
   end
   
   def pieces(color)
     @board.flatten.select { |x| x.color == color unless x.nil? }
-  end  
+  end
+  
+  def setup_board
+    King.new([3,0], self, :white)
+    Queen.new([4,0], self, :white)
+    Bishop.new([5,0], self, :white)
+    Bishop.new([2,0], self, :white)
+    Knight.new([6,0], self, :white)
+    Knight.new([1,0], self, :white)
+    Castle.new([0,0], self, :white)
+    Castle.new([7,0], self, :white)
+    8.times { |i| Pawn.new([i,1], self, :white) }
+  
+    King.new([3,7], self, :black)
+    Queen.new([4,7], self, :black)
+    Bishop.new([5,7], self, :black)
+    Bishop.new([2,7], self, :black)
+    Knight.new([6,7], self, :black)
+    Knight.new([1,7], self, :black)
+    Castle.new([0,7], self, :black)
+    Castle.new([7,7], self, :black)
+    8.times { |i| Pawn.new([i,6], self, :black) }
+  end
   
   def display_board
     checker = false
@@ -36,10 +59,25 @@ class Board
     @board[pos_arr.last][pos_arr.first] = piece
   end
   
+  def get_king(color)
+    pieces(color).find {|p| p.is_a?(King)}
+  end
+  
   def in_check?(color)
-    k_pos = pieces(color).select {|p| p.is_a?(King)}.last.position
+    k_pos = get_king(color).position
     other_color = (color == :white ? :black : :white)
     pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
+  end
+  
+  def in_checkmate?(color)
+    k_pos = get_king(color).position
+    valid_moves = []
+    pieces(color).each do |piece|
+      valid_moves += piece.moves.select do |move| 
+        !piece.move_into_check?(move)
+      end
+    end
+    valid_moves.empty?
   end
   
   def move(start_pos, end_pos)
@@ -81,7 +119,10 @@ class Board
     @board.each_with_index do |row, i|
       row.each_with_index do |piece, j|
         next if piece.nil?
-        new_board[[j, i]] = piece.class.new(piece.position, new_board,                                                                      piece.color)
+        new_board[[j, i]] = piece.class.new(
+                            piece.position,
+                            new_board,                                                                      piece.color
+                            )
       end
     end
     new_board
@@ -190,7 +231,8 @@ class King < SteppingPiece
   end
   
   def inspect
-    "K"
+    return "♔" if @color == :black
+    "♚" if @color == :white
   end
   
                 
@@ -222,7 +264,8 @@ class Knight < SteppingPiece
   end
   
   def inspect
-    "N"
+    return "♘" if @color == :black
+    "♞" if @color == :white
   end
   
 end
@@ -239,7 +282,8 @@ class Queen < SlidingPiece
   end
   
   def inspect
-    "Q"
+    return "♕" if @color == :black
+    "♛" if @color == :white
   end
 end
   
@@ -256,7 +300,8 @@ class Bishop < SlidingPiece
   end
   
   def inspect
-    "B"
+    return "♗" if @color == :black
+    "♝" if @color == :white
   end
 end
 
@@ -272,7 +317,8 @@ class Castle < SlidingPiece
   end
   
   def inspect
-    "C"
+    return "♖" if @color == :black
+    "♜" if @color == :white
   end
 end
 
@@ -316,7 +362,8 @@ class Pawn < SteppingPiece
     moves_arr
   end
   def inspect
-    "P"
+    return "♙" if @color == :black
+    "♟" if @color == :white
   end
   
 end
@@ -324,16 +371,6 @@ end
 
 if __FILE__  == $PROGRAM_NAME
   b = Board.new
-  white_k = King.new([3,0], b, :white)
-  white_b = Bishop.new([2,0], b, :white)
-  white_p = Pawn.new([0,1], b, :white)
-  
-  black_k = King.new([3,7], b, :black)
-  black_b = Bishop.new([2,7], b, :black)
   b.display_board
-  #b.move([3,0], [4,0])
-  b.display_board
-  b.move([2,7], [5,4])
-  b.move([3,0], [2,1])
-  b.display_board
+  puts b.in_checkmate?(:white)
 end
