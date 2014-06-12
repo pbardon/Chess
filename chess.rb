@@ -7,7 +7,6 @@ class Game
   def initialize
     @b = Board.new
     @cursor_pos = [3,3]
-    @checkmate = false
     play_game
   end
   
@@ -22,41 +21,57 @@ class Game
     when 'd'
       move_cursor([1, 0])
     when 'q'
-      @checkmate = true
-      return
+      @quit == true
     when 'c'
       @move_from = [@cursor_pos[0],@cursor_pos[1]]
       puts @cursor_pos
     when 'v'
-      @move_to = [@cursor_pos[0],@cursor_pos[1]]
-      @b.move(@move_from, @move_to)
-      return
+      if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
+        return 
+      else
+        @move_to = [@cursor_pos[0],@cursor_pos[1]]
+        if @b[@move_from].move_into_check?(@move_from)
+          puts "You must move your piece out of check"
+          return
+        else
+          @b.move(@move_from, @move_to)
+        end
+      end
     end
   end
   
   def move_cursor(rel_pos)
     @cursor_pos[0] += rel_pos.first
+    @cursor_pos[0] = @cursor_pos[0] % 8
     @cursor_pos[1] += rel_pos.last
+    @cursor_pos[1] = @cursor_pos[1] % 8
   end
   
   def play_game
-    until @checkmate
+    until game_over? || @quit == true
       begin
-        system("clear")
         @b.display_board(@cursor_pos)
         puts "Use WASD to move and C to choose starting piece and V to place it."
         input(STDIN.getch)
         p @cursor_pos
-        break if @checkmate
-        system("clear")
+        ##system("clear")
         @b.display_board(@cursor_pos)
         
-        @checkmate = @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
       rescue StandardError => e
         puts e.message
-        retry
+       ## retry
       end
     end
+  end
+  
+  def game_over?
+    if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
+      put "The game is over"
+      quit = true
+    else
+      quit = false
+    end
+    quit
   end
 end
 
@@ -135,12 +150,14 @@ class Board
   def in_check?(color)
     k_pos = get_king(color).position
     other_color = (color == :white ? :black : :white)
+    if pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
+      puts "In check" 
+    end
     pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
   end
   
   def in_checkmate?(color)
     k_pos = get_king(color).position
-
     pieces(color).map do |piece|
       piece.moves.select do |move| 
         !piece.move_into_check?(move)
@@ -151,8 +168,7 @@ class Board
   
   def move(start_pos, end_pos)
     piece = @board[start_pos[1]][start_pos[0]]
-    puts "start pos:"
-    p start_pos
+    
     unless piece.nil?
       moves = piece.moves
       if moves.include?(end_pos)
@@ -176,7 +192,7 @@ class Board
       moves = piece.moves
       if moves.include?(end_pos)
         @board[start_pos[1]][start_pos[0]] = nil
-          piece.set_position(end_pos)
+        piece.set_position(end_pos)
       end
     end
   end
@@ -187,7 +203,7 @@ class Board
       row.each_with_index do |piece, j|
         next if piece.nil?
         new_board[[j, i]] = piece.class.new(
-                            piece.position,
+                            piece.position.dup,
                             new_board,                                                                      piece.color
                             )
       end
@@ -466,4 +482,31 @@ end
 
 if __FILE__  == $PROGRAM_NAME
   g = Game.new
+  
+=begin
+  b = Board.new
+  k = King.new([0,0], b, :white)
+  b4 = Bishop.new([1,1], b, :white)
+  ##c1 = Castle.new([3,1], b, :black)
+  ##c2 = Castle.new([1,3], b, :black)
+  b1 = Bishop.new([3,2], b, :black)
+  b2 = Bishop.new([2,3], b, :black)
+  b3 = Bishop.new([3,3], b, :black)
+  b.display_board([3,3])
+  ##b.move([0,0], [1, 1])
+  b.move([1,1], [2,0])
+  b.display_board([3,3])
+  
+=end
+  
+
 end
+
+=begin
+b = Board.new
+King.new([0,0], b, :white)
+Castle.new([3,1], b, :black)
+Castle.new([1,3], b, :black)
+=end
+
+  
