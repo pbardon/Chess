@@ -1,6 +1,6 @@
 # encoding: UTF-8 
 require 'io/console'
-require 'debugger'
+##require 'debugger'
 
 
 class Game
@@ -24,6 +24,7 @@ class Game
       @quit = true
     when 'c'
       @move_from = [@cursor_pos[0],@cursor_pos[1]]
+      @b.display_board(@cursor_pos, @move_from)
       puts @cursor_pos
     when 'v'
       if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
@@ -51,7 +52,7 @@ class Game
     until game_over? || @quit == true
       begin
         system("clear")
-        @b.display_board(@cursor_pos)
+        @b.display_board(@cursor_pos, @move_from)
         puts "Use WASD to move and C to choose starting piece and V to place it."
         input(STDIN.getch)
         p @cursor_pos
@@ -108,7 +109,7 @@ class Board
     8.times { |i| Pawn.new([i,6], self, :black) }
   end
   
-  def display_board(cursor_pos)
+  def display_board(cursor_pos, selection = nil)
     checker = false
     @board.each_with_index do |row, i|
       checker = !checker
@@ -121,6 +122,13 @@ class Board
             print "#{space.inspect} ".green
           end
           checker = !checker
+        elsif [j,i] == selection
+          if space == nil
+            print  "▓" + " " if checker
+            print  "▢" + " " if !checker
+          else
+            print "#{space.inspect} ".red
+          end
         else
           if space == nil
             print  "▓" + " " if checker
@@ -135,6 +143,7 @@ class Board
     end
     puts ""
   end
+    
   
   def [](pos_arr)
     @board[pos_arr.last][pos_arr.first]
@@ -477,6 +486,10 @@ class String
 
   def green
     colorize(32)
+  end
+  
+  def red
+    colorize(31)
   end
 end
     
