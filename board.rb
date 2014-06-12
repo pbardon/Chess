@@ -53,6 +53,7 @@ class Board
           else
             print "#{space.inspect} ".red
           end
+          checker = !checker
         else
           if space == nil
             print  "▓" + " " if checker
@@ -78,57 +79,54 @@ class Board
   end
   
   def get_king(color)
-    pieces(color).find {|p| p.is_a?(King)}
+    king = pieces(color).find { |p| p.is_a?(King) }
+    king || (raise 'king not found')
   end
   
   def in_check?(color)
     k_pos = get_king(color).position
     other_color = (color == :white ? :black : :white)
-    if pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
-      puts "In check" 
-    end
-    pieces(other_color).any? { |piece| piece.moves.include?(k_pos) }
+    pieces(other_color).any? { |piece| piece.moves.include?(k_pos) unless piece.moves.nil? }
   end
   
   def in_checkmate?(color)
-    k_pos = get_king(color).position
-    pieces(color).map do |piece|
-      piece.moves.select do |move| 
-        !piece.move_into_check?(move)
-      end
-    end.flatten(1).empty?
-
+    return false unless in_check?(color)
+    pieces(color).all? do |piece|
+      piece.moves.empty?
+    end
   end
   
   def move(start_pos, end_pos)
-    piece = @board[start_pos[1]][start_pos[0]]
-    
+    piece = self[start_pos]
     unless piece.nil?
       moves = piece.moves
       if moves.include?(end_pos)
+        puts "hello 1"
+        piece.valid_moves
         if piece.move_into_check?(end_pos)
-          raise "This move would put you in check"
+          puts "hello 2"
+          raise StandardError.new "This move would put you in check"
         else
-          @board[start_pos[1]][start_pos[0]] = nil
-           piece.set_position(end_pos)
+           move!(start_pos, end_pos)
         end
       else
         raise StandardError.new "Can't move there."
       end
     else
-      raise "No piece"
+      raise StandardError.new "No piece"
     end
   end
   
   def move!(start_pos, end_pos)
-    piece = @board[start_pos[1]][start_pos[0]]
-    unless piece.nil?
-      moves = piece.moves
-      if moves.include?(end_pos)
-        @board[start_pos[1]][start_pos[0]] = nil
-        piece.set_position(end_pos)
-      end
+    piece = self[start_pos]
+    moves = piece.moves
+    if moves.include?(end_pos)
+      self[end_pos] = piece
+      self[start_pos] = nil
+      piece.set_position(end_pos)
+      
     end
+    nil
   end
   
   def dup

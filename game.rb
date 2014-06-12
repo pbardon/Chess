@@ -11,6 +11,11 @@ class Game
   end
   
   def input(choice)
+    
+    if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
+      return
+    end
+    
     case choice.to_s
     when 'w'
       move_cursor([0, -1])
@@ -25,18 +30,13 @@ class Game
     when 'c'
       @move_from = [@cursor_pos[0],@cursor_pos[1]]
       @b.display_board(@cursor_pos, @move_from)
-      puts @cursor_pos
     when 'v'
-      if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
-        return 
+      @move_to = [@cursor_pos[0],@cursor_pos[1]]
+      if @b[@move_from].move_into_check?(@move_to)
+        puts "You must move your piece out of check"
+        return
       else
-        @move_to = [@cursor_pos[0],@cursor_pos[1]]
-        if @b[@move_from].move_into_check?(@move_from)
-          puts "You must move your piece out of check"
-          return
-        else
-          @b.move(@move_from, @move_to)
-        end
+        @b.move(@move_from, @move_to)
       end
     end
   end
@@ -49,31 +49,19 @@ class Game
   end
   
   def play_game
-    until game_over? || @quit == true
-      begin
-        system("clear")
-        @b.display_board(@cursor_pos, @move_from)
-        puts "Use WASD to move and C to choose starting piece and V to place it."
-        input(STDIN.getch)
-        p @cursor_pos
-     #   system("clear")
-       # @b.display_board(@cursor_pos)
+    until @b.in_checkmate?(:white) || @b.in_checkmate?(:black) || @quit == true
+      ## begin
+      system("clear")
+      @b.display_board(@cursor_pos, @move_from)
+      puts "Use WASD to move and C to choose starting piece and V to place it."
+      input(STDIN.getch)
+      ##    system("clear")
+      @b.display_board(@cursor_pos, @move_from)
         
-      rescue StandardError => e
-        puts e.message
-        retry
-      end
+      ## rescue StandardError => e
+      ##    puts e.message
+      ##     retry
     end
-  end
-  
-  def game_over?
-    if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
-      put "The game is over"
-      quit = true
-    else
-      quit = false
-    end
-    quit
   end
 end
 
