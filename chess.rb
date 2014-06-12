@@ -21,7 +21,7 @@ class Game
     when 'd'
       move_cursor([1, 0])
     when 'q'
-      @quit == true
+      @quit = true
     when 'c'
       @move_from = [@cursor_pos[0],@cursor_pos[1]]
       puts @cursor_pos
@@ -50,16 +50,17 @@ class Game
   def play_game
     until game_over? || @quit == true
       begin
+        system("clear")
         @b.display_board(@cursor_pos)
         puts "Use WASD to move and C to choose starting piece and V to place it."
         input(STDIN.getch)
         p @cursor_pos
-        ##system("clear")
-        @b.display_board(@cursor_pos)
+     #   system("clear")
+       # @b.display_board(@cursor_pos)
         
       rescue StandardError => e
         puts e.message
-       ## retry
+        retry
       end
     end
   end
