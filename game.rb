@@ -1,4 +1,4 @@
-# encoding: UTF-8 
+# encoding: UTF-8
 require 'io/console'
 require './board.rb'
 require './piece.rb'
@@ -9,13 +9,13 @@ class Game
     @cursor_pos = [3,3]
     play_game
   end
-  
+
   def input(choice)
-    
+
     if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
       return
     end
-    
+
     case choice.to_s
     when 'w'
       move_cursor([0, -1])
@@ -40,56 +40,36 @@ class Game
       end
     end
   end
-  
+
   def move_cursor(rel_pos)
     @cursor_pos[0] += rel_pos.first
     @cursor_pos[0] = @cursor_pos[0] % 8
     @cursor_pos[1] += rel_pos.last
     @cursor_pos[1] = @cursor_pos[1] % 8
   end
-  
+
   def play_game
     until @b.in_checkmate?(:white) || @b.in_checkmate?(:black) || @quit == true
-      ## begin
-      system("clear")
-      @b.display_board(@cursor_pos, @move_from)
-      puts "Use WASD to move and C to choose starting piece and V to place it."
-      input(STDIN.getch)
-      ##    system("clear")
-      @b.display_board(@cursor_pos, @move_from)
-        
-      ## rescue StandardError => e
-      ##    puts e.message
-      ##     retry
+      message = ""
+      begin
+        system("clear")
+        if @b.turn == "white"
+          puts "White's turn"
+        else
+          puts "Black's turn"
+        end
+        @b.display_board(@cursor_pos, @move_from)
+        puts "Use WASD to move and C to choose starting piece and V to place it. Or enter 'q' to quit"
+        puts message
+        input(STDIN.getch)
+      rescue StandardError => e
+        message = e.message
+        retry
+      end
     end
   end
 end
 
 if __FILE__  == $PROGRAM_NAME
   g = Game.new
-  
-=begin
-  b = Board.new
-  k = King.new([0,0], b, :white)
-  b4 = Bishop.new([1,1], b, :white)
-  ##c1 = Castle.new([3,1], b, :black)
-  ##c2 = Castle.new([1,3], b, :black)
-  b1 = Bishop.new([3,2], b, :black)
-  b2 = Bishop.new([2,3], b, :black)
-  b3 = Bishop.new([3,3], b, :black)
-  b.display_board([3,3])
-  ##b.move([0,0], [1, 1])
-  b.move([1,1], [2,0])
-  b.display_board([3,3])
-  
-=end
-  
-
 end
-
-=begin
-b = Board.new
-King.new([0,0], b, :white)
-Castle.new([3,1], b, :black)
-Castle.new([1,3], b, :black)
-=end
