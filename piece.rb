@@ -1,8 +1,8 @@
-# encoding: UTF-8 
+# encoding: UTF-8
 require './board'
 class Piece
   attr_accessor :x_pos, :y_pos, :color
-  
+
   CARDINALS = [ [ 1,  1],
                 [-1,  1],
                 [ 1, -1],
@@ -11,7 +11,7 @@ class Piece
                 [ 0, -1],
                 [ 1,  0],
                 [-1,  0]]
-                
+
 
   def initialize(pos, board, color)
     @board = board
@@ -20,26 +20,26 @@ class Piece
     @color = color
     @board[pos] = self
   end
-  
+
   def position
     [@x_pos, @y_pos]
   end
-  
+
   def set_position(pos_arr)
     @x_pos = pos_arr.first
     @y_pos = pos_arr.last
-  end    
-  
+  end
+
   def move_into_check?(pos)
     new_board = @board.dup
     new_board.move!([@x_pos, @y_pos], pos)
     new_board.in_check?(@color)
   end
-  
+
   def valid_moves
     @moves_arr.reject { |to_pos| move_into_check?(to_pos) }
   end
-  
+
   def inspect
     raise "not implemented"
   end
@@ -49,10 +49,10 @@ class SteppingPiece < Piece
   def initialize(position, board, color)
     super
   end
-  
+
   def moves(valid_arr)
     @moves_arr = []
-    valid_arr.each do |move| 
+    valid_arr.each do |move|
       dx = move.first
       dy = move.last
       new_pos = [@x_pos + dx, @y_pos + dy]
@@ -72,7 +72,7 @@ class SlidingPiece < Piece
   def initialize(position, board, color)
     super
   end
-  
+
   def moves(valid_dir)
     @moves_arr = []
     valid_dir.each do |dir|
@@ -83,7 +83,7 @@ class SlidingPiece < Piece
         new_pos = [@x_pos + dx, @y_pos + dy]
         if new_pos.first.between?(0,7) && new_pos.last.between?(0,7)
           if @board[new_pos] != nil
-            @moves_arr << new_pos if @board[new_pos].color != @color 
+            @moves_arr << new_pos if @board[new_pos].color != @color
             stop_n = n
             break
           else
@@ -93,31 +93,30 @@ class SlidingPiece < Piece
       end
     end
     @moves_arr
-  end 
+  end
 end
 
 class King < SteppingPiece
-                  
+
   def initialize(position, board, color)
     super
     @character = "K"
   end
-  
+
   def inspect
     return "♔" if @color == :black
     "♚" if @color == :white
   end
-  
-                
+
+
   def moves
     super(CARDINALS)
-    p 
   end
-  
+
 end
 
 class Knight < SteppingPiece
-  
+
   N_MOVES = [     [ 2,  1],
                   [-2,  1],
                   [ 1,  2],
@@ -126,26 +125,26 @@ class Knight < SteppingPiece
                   [-1, -2],
                   [ 2, -1],
                   [-2, -1]]
-                
-                
+
+
   def initialize(position, board, color)
     super
     @character = "N"
   end
-                
+
   def moves(move = N_MOVES)
     super
   end
-  
+
   def inspect
     return "♘" if @color == :black
     "♞" if @color == :white
   end
-  
+
 end
-  
+
 class Queen < SlidingPiece
-  
+
   def initialize(position, board, color)
     super
     @character = "Q"
@@ -154,25 +153,25 @@ class Queen < SlidingPiece
   def moves
     super(CARDINALS)
   end
-  
+
   def inspect
     return "♕" if @color == :black
     "♛" if @color == :white
   end
 end
-  
+
 class Bishop < SlidingPiece
-  
-                
+
+
   def initialize(position, board, color)
     super
     @character = "B"
   end
-  
+
   def moves
     super(CARDINALS.take(4))
   end
-  
+
   def inspect
     return "♗" if @color == :black
     "♝" if @color == :white
@@ -180,16 +179,16 @@ class Bishop < SlidingPiece
 end
 
 class Castle < SlidingPiece
-             
+
   def initialize(position, board, color)
     super
     @character = "C"
   end
-  
+
   def moves
     super(CARDINALS.drop(4))
   end
-  
+
   def inspect
     return "♖" if @color == :black
     "♜" if @color == :white
@@ -197,13 +196,13 @@ class Castle < SlidingPiece
 end
 
 class Pawn < SteppingPiece
-  
+
   def initialize(position, board, color)
     super
     @character = "P"
     @first_pos = position
   end
-  
+
   def moves()
     @moves_arr = []
     if self.color == :white
@@ -216,7 +215,7 @@ class Pawn < SteppingPiece
       end
       if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
         if self.position == @first_pos && @board[new_pos] == nil
-          @moves_arr << new_pos2 
+          @moves_arr << new_pos2 if @board[new_pos2] == nil
         end
       end
     else
@@ -229,13 +228,13 @@ class Pawn < SteppingPiece
       end
       if new_pos2.first.between?(0,7) && new_pos2.last.between?(0,7)
         if self.position == @first_pos && @board[new_pos] == nil
-          @moves_arr << new_pos2
+          @moves_arr << new_pos2 if @board[new_pos2] == nil
         end
       end
     end
     @moves_arr
   end
-  
+
   def check_for_enemies(color, deltas)
     @moves_arr = []
     deltas.each do |delta|
@@ -255,5 +254,5 @@ class Pawn < SteppingPiece
     return "♙" if @color == :black
     "♟" if @color == :white
   end
-  
+
 end

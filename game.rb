@@ -33,7 +33,7 @@ class Game
     when 'v'
       @move_to = [@cursor_pos[0],@cursor_pos[1]]
       if @b[@move_from].move_into_check?(@move_to)
-        puts "You must move your piece out of check"
+        raise StandardError.new "You must move your piece out of check"
         return
       else
         @b.move(@move_from, @move_to)

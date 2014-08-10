@@ -35,6 +35,8 @@ class Board
     Castle.new([0,7], self, :black)
     Castle.new([7,7], self, :black)
     8.times { |i| Pawn.new([i,6], self, :black) }
+
+    # four_move_checkmate
   end
 
   def display_board(cursor_pos, selection = nil)
@@ -92,10 +94,18 @@ class Board
     pieces(other_color).any? { |piece| piece.moves.include?(k_pos) unless piece.moves.nil? }
   end
 
+  def four_move_checkmate
+    test_move!([3,1],[3,3])
+    test_move!([1,6],[1,4])
+    test_move!([2,6],[2,5])
+    test_move!([4,0],[0,4])
+
+  end
+
   def in_checkmate?(color)
     return false unless in_check?(color)
     pieces(color).all? do |piece|
-      piece.moves.empty?
+      piece.valid_moves.empty?
     end
   end
 
@@ -104,17 +114,15 @@ class Board
 
     unless piece.nil?
       moves = piece.moves
-      unless moves.nil?
-        if moves.include?(end_pos)
-          piece.valid_moves
-          if piece.move_into_check?(end_pos)
-            raise StandardError.new "This move would put you in check"
-          else
-             move!(start_pos, end_pos)
-          end
+      if moves.include?(end_pos)
+        piece.valid_moves
+        if piece.move_into_check?(end_pos)
+          raise StandardError.new "This move would put you in check"
         else
-          raise StandardError.new "Can't move there."
+           move!(start_pos, end_pos)
         end
+      else
+        raise StandardError.new "Can't move there."
       end
     else
       raise StandardError.new "No piece"
@@ -125,11 +133,19 @@ class Board
     @turn == 'white' ? @turn = 'black' : @turn = 'white'
     piece = self[start_pos]
     moves = piece.moves
-    if !moves.nil? && moves.include?(end_pos)
+    if moves.include?(end_pos)
       self[end_pos] = piece
       self[start_pos] = nil
       piece.set_position(end_pos)
     end
+  end
+
+  def test_move!(start_pos, end_pos)
+    piece = self[start_pos]
+    self[end_pos] = piece
+    self[start_pos] = nil
+    piece.set_position(end_pos)
+
   end
 
   def dup
