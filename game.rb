@@ -11,11 +11,6 @@ class Game
   end
 
   def input(choice)
-
-    if @b.in_checkmate?(:white) || @b.in_checkmate?(:black)
-      return
-    end
-
     case choice.to_s
     when 'w'
       move_cursor([0, -1])

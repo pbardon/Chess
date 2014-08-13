@@ -36,7 +36,8 @@ class Board
     Castle.new([7,7], self, :black)
     8.times { |i| Pawn.new([i,6], self, :black) }
 
-    # four_move_checkmate
+    four_move_checkmate
+
   end
 
   def display_board(cursor_pos, selection = nil)
@@ -98,7 +99,6 @@ class Board
     test_move!([3,1],[3,3])
     test_move!([1,6],[1,4])
     test_move!([2,6],[2,5])
-    test_move!([4,0],[0,4])
 
   end
 
@@ -110,8 +110,12 @@ class Board
   end
 
   def move(start_pos, end_pos)
-    piece = self[start_pos]
 
+    piece = self[start_pos]
+    if piece.color != @turn.to_sym
+      raise StandardError.new "Not Your Turn"
+      return
+    end
     unless piece.nil?
       moves = piece.moves
       if moves.include?(end_pos)
@@ -126,6 +130,11 @@ class Board
       end
     else
       raise StandardError.new "No piece"
+    end
+    if in_checkmate?(:black)
+      puts "white wins"
+    elsif in_checkmate?(:white)
+      puts "black wins"
     end
   end
 

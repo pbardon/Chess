@@ -4,4 +4,6 @@ How to Play:
 
 2. Open Terminal
 
-3. type ruby game.rb
+3. Navigate to chess folder root in terminal
+
+4. Type ruby game.rb
